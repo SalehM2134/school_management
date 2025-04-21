@@ -1,0 +1,91 @@
+-- Create database
+CREATE DATABASE IF NOT EXISTS school_management_db CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci;
+USE school_management_db;
+
+-- Users table
+CREATE TABLE `users` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `username` varchar(50) NOT NULL,
+  `password` varchar(255) NOT NULL,
+  `name` varchar(100) NOT NULL,
+  `email` varchar(100) NOT NULL,
+  `role` enum('admin','teacher') NOT NULL DEFAULT 'teacher',
+  `last_login` datetime DEFAULT NULL,
+  `status` enum('active','inactive') NOT NULL DEFAULT 'active',
+  `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `username` (`username`),
+  UNIQUE KEY `email` (`email`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- Students table
+CREATE TABLE `students` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `admission_no` varchar(20) DEFAULT NULL,
+  `name` varchar(100) NOT NULL,
+  `gender` enum('male','female','other') NOT NULL,
+  `dob` date DEFAULT NULL,
+  `address` text DEFAULT NULL,
+  `parent_name` varchar(100) DEFAULT NULL,
+  `contact` varchar(20) DEFAULT NULL,
+  `email` varchar(100) DEFAULT NULL,
+  `class_id` int(11) DEFAULT NULL,
+  `photo` varchar(255) DEFAULT NULL,
+  `status` enum('active','inactive') NOT NULL DEFAULT 'active',
+  `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` timestamp NULL DEFAULT NULL ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `admission_no` (`admission_no`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- Classes table
+CREATE TABLE `classes` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `name` varchar(50) NOT NULL,
+  `description` text DEFAULT NULL,
+  `capacity` int(11) DEFAULT 30,
+  `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` timestamp NULL DEFAULT NULL ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `name` (`name`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- Attendance table
+CREATE TABLE `attendance` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `student_id` int(11) NOT NULL,
+  `class_id` int(11) NOT NULL,
+  `date` date NOT NULL,
+  `status` enum('present','absent','late') NOT NULL DEFAULT 'present',
+  `remarks` text DEFAULT NULL,
+  `marked_by` int(11) DEFAULT NULL,
+  `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` timestamp NULL DEFAULT NULL ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `student_date` (`student_id`,`date`),
+  KEY `class_date` (`class_id`,`date`),
+  KEY `marked_by` (`marked_by`),
+  CONSTRAINT `fk_attendance_student` FOREIGN KEY (`student_id`) REFERENCES `students` (`id`) ON DELETE CASCADE,
+  CONSTRAINT `fk_attendance_class` FOREIGN KEY (`class_id`) REFERENCES `classes` (`id`) ON DELETE CASCADE,
+  CONSTRAINT `fk_attendance_user` FOREIGN KEY (`marked_by`) REFERENCES `users` (`id`) ON DELETE SET NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- Add default admin user (username: admin, password: admin123)
+INSERT INTO `users` (`username`, `password`, `name`, `email`, `role`) 
+VALUES ('admin', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'Administrator', 'admin@school.com', 'admin');
+
+-- Add sample classes
+INSERT INTO `classes` (`name`, `description`, `capacity`) VALUES
+('Class 1', 'First standard', 30),
+('Class 2', 'Second standard', 30),
+('Class 3', 'Third standard', 30),
+('Class 4', 'Fourth standard', 30),
+('Class 5', 'Fifth standard', 30);
+
+-- Add sample students
+INSERT INTO `students` (`admission_no`, `name`, `gender`, `dob`, `parent_name`, `contact`, `class_id`) VALUES
+('S001', 'John Doe', 'male', '2015-05-15', 'Richard Doe', '1234567890', 1),
+('S002', 'Jane Smith', 'female', '2015-07-22', 'Robert Smith', '9876543210', 1),
+('S003', 'Michael Johnson', 'male', '2014-03-10', 'David Johnson', '5555555555', 2),
+('S004', 'Emily Brown', 'female', '2014-11-30', 'James Brown', '6666666666', 2),
+('S005', 'William Davis', 'male', '2013-09-05', 'Charles Davis', '7777777777', 3);
