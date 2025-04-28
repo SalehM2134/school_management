@@ -1,7 +1,7 @@
 <?php
 /**
  * Index Page
- * 
+ * Ramses
  * This file redirects to the login page or dashboard
  */
 
